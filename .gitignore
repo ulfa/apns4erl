@@ -21,4 +21,4 @@ priv/cert.pem
 .awconfig
 .erlang.mk.packages.v2
 logs/
-
+priv/certs/

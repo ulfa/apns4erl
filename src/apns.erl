@@ -20,6 +20,8 @@
 -export([message_id/0, expiry/1, timestamp/1]).
 -export([default_connection/0]).
 -export([start/2, stop/1]).
+-export([connect_test/0, send_test/0]).
+-export([log_error/2, log_feedback/1]).
 
 -type status() :: no_errors
                 | processing_error
@@ -289,3 +291,34 @@ default_connection() ->
     , extra_ssl_opts =
         get_env(extra_ssl_opts,  DefaultConn#apns_connection.extra_ssl_opts)
     }.
+
+-spec connect_test() -> ok.
+connect_test() ->
+  apns:connect(
+        %% your connection identifier:
+        'icook',
+        %% called in case of a "hard" error:
+        fun ?MODULE:log_error/2,
+        %% called if the device uninstalled the application:
+        fun ?MODULE:log_feedback/1
+      ).
+
+-spec send_test() -> ok.
+send_test() ->
+  apns:send_message('icook', #apns_msg{
+        alert  = "Mahlzeit" ,
+        badge  = 1,
+        sound  = "default" ,
+        category = "INVITE_CATEGORY",
+        expiry = 1348000749,
+        device_token = "63c0d784cb0ccb0d1f93b6271b956afdbdd8371451a6c6f91dc6e7fad85a60e9"
+      }),
+  ok.
+
+-spec log_error(string(), string()) -> ok.
+log_error(MsgId, Status) ->
+  error_logger:error_msg("Error on msg ~p: ~p~n", [MsgId, Status]).
+
+-spec log_feedback(string()) -> ok.
+log_feedback(Token) ->
+  error_logger:warning_msg("Device with token ~p removed the app~n", [Token]).
